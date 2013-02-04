@@ -8,8 +8,9 @@ import scikits.statsmodels.api as sm
 
 import matplotlib.pyplot as plt
 
-target_indegree_exponent = 2.7
-target_num_nodes = 1000
+target_indegree_exponent = -2.7
+target_R2 = 0.8
+target_num_nodes = 2000
 
 initial_num_nodes = 3
 initial_num_edges = 2
@@ -21,16 +22,38 @@ basis_functions = [lambda x: 1,
                    lambda x: x**4,
                    lambda x: x**5]
 
-def reward_function_gen(target_exponent, target_num_nodes):
-    # no multiline lambdas => running regress once for
-    # each parameter.  Ewwwww.
-    return lambda G, target_exponent=target_exponent, target_num_nodes=target_num_nodes: fit_powerlaw_regress(G)[1] / (((np.abs(target_exponent - fit_powerlaw_regress(G)[0]) + 1) * np.log10(np.abs(G.number_of_nodes() - target_num_nodes) + 1))+1)
+#def reward_function_gen(target_exponent, target_num_nodes):
+#    # no multiline lambdas => running regress once for
+#    # each parameter.  Ewwwww.
+#    return lambda G, target_exponent=target_exponent, target_num_nodes=target_num_nodes: fit_powerlaw_regress(G)[1] / (((np.abs(target_exponent - fit_powerlaw_regress(G)[0]) + 1) * np.log10(np.abs(G.number_of_nodes() - target_num_nodes) + 1))+1)
 
+#def reward_fn(G,termination_fn):
+#    if termination_fn(G):
+#        return 0
+#    else:
+#        return -1
+#
 
+#def termination_function(reward):
+#    return reward >= 0.9 and reward <= 1.1
 
+def reward_fn(G, exp_tol=0.25, R2_tol=0.1, n_node_tol=10):
+    exp, R2 = fit_powerlaw_regress(G)
+    R2_condition =  (R2 >= target_R2 - R2_tol)
 
-def termination_function(reward):
-    return reward >= 0.9 and reward <= 1.1
+    exp_condition = (np.abs(exp) >= np.abs(target_indegree_exponent) - exp_tol) and (np.abs(exp) <= np.abs(target_indegree_exponent) + exp_tol)
+
+    num_nodes = G.number_of_nodes()
+    node_condition = (num_nodes >= target_num_nodes - n_node_tol) and (num_nodes <= target_num_nodes + n_node_tol)
+    #print R2, exp, num_nodes
+    #print R2_condition, exp_condition, node_condition
+
+    return int(R2_condition) + int(exp_condition) + int(node_condition)
+    #if (R2_condition and exp_condition and node_condition):
+    #    return 0
+    #else:
+    #    return -1
+    
 
 #------------------------------------------------------------------------------#
 # Utility Functions
@@ -102,7 +125,7 @@ def add_node_random_edge(G):
     G.add_edge(node_label, random_existing_node)
 
 def delete_node_random(G):
-    if G.number_of_nodes() > 1:
+    if G.number_of_nodes() > target_num_nodes:
         #node_index = rand.randint(G.number_of_nodes())
         #node_label = G.nodes()[node_index]
         node_label = sample_node(G)
@@ -123,7 +146,7 @@ def delete_node_in_degree(G):
             G.remove_node(node_label)
 
 def delete_node_in_degree_inverse(G):
-    if G.number_of_nodes() > 1:
+    if G.number_of_nodes() >= target_num_nodes:
         inv_in_degree = 1 / (np.array(G.in_degree().values()) + 1)
         pmf = inv_in_degree.astype(float) / inv_in_degree.sum()
 
@@ -189,15 +212,19 @@ def powerlaw_mle(G):
 
 
 glearn = gg.gglearner(initial_graph(3,2),
-                      reward_function_gen(target_indegree_exponent, target_num_nodes),
-                      [add_node_random_edge, add_edge_random, add_edge_in_degree],
+                      # reward_function_gen(target_indegree_exponent, target_num_nodes),
+                      reward_fn,
+                      [add_node_random_edge, 
+                       delete_node_in_degree_inverse,
+                       add_edge_random, 
+                       add_edge_in_degree],
                       ["add node",
-                       "add random edge", "add edge by in-degree"],
+                       "delete node by inverse in-degree",
+                       "add random edge", 
+                       "add edge by in-degree"],
                       basis_functions,
                       [num_nodes, num_edges, average_in_degree],#, powerlaw_mle],
-                      termination_function,
-                      10000)
+                      500)
 
 
-#glearn.episode(0.9, 0.9, 0.9, True)
-glearn.run_episode(0.9,0.9,0.9)
+glearn.run_episode(0.9,0.9,0.9,animate="anim")
