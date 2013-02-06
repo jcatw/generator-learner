@@ -1,9 +1,11 @@
 import numpy as np
+import numpy.random as rand
 import networkx as nx
 import scikits.statsmodels.api as sm
 import matplotlib.pyplot as plt
 import ols
 import os
+import logging
 from copy import deepcopy
 
 import images2gif
@@ -71,7 +73,8 @@ class episode:
         self.gamma = gamma
         self.epsilon = epsilon
 
-    def run(self, draw_steps = False, animate = None): 
+    #TODO: clean up method comments
+    def run(self, n_iter, draw_steps = False, animate = None): 
         """ 
         Run the Q-learner.  If draw_steps is true, draw and 
         show the learned graph at each iteration.
@@ -90,53 +93,70 @@ class episode:
         if not animate is None:
             episode_animator = animator(animate)
         
-        print self.learner.actions.action_dict 
-        Q = 0.0
-        action_taken = np.random.randint(0, len(self.learner.actions))
-        reward = 0
+        #print self.learner.actions.action_dict 
+        logging.info("action dictionary: %s" % (self.learner.actions.action_dict,))
+        #Q = 0.0
+        action_A = np.random.randint(0, len(self.learner.actions))
 
-        for i in xrange(self.learner.max_rows):
-
-            if not i%100: print i
+        for i in xrange(n_iter):
+            prev_q = self.learner.actions.get(action_A).q(self.learner.features.get(self.learner.G))
+            #if not i%100: print i
+            if not i%100: logging.info("iteration %s" % (i,))
             #print i
 
-            self.learner.actions.get(action_taken).execute(self.learner.G)
+            #if np.random.rand() <= self.epsilon:
+            #    action_A = np.random.randint(0, len(self.learner.actions))
+            #else:
+            #    action_A = Q_values.argmax()
 
+            self.learner.actions.get(action_A).execute(self.learner.G)
+
+            reward = self.learner.reward_function(self.learner.G)
 
             if not animate is None and i % episode_animator.interval == 0:
                 episode_animator.add_frame(self.learner.G)
                 
             if draw_steps:
-                #print "Action taken: %s" % (self.learner.actions.action_dict[action_taken],)
+                #print "Action taken: %s" % (self.learner.actions.action_dict[action_A],)
                 nx.draw(self.learner.G)
                 plt.show()
                 #raw_input("Press Enter to continue")
 
+            if self.learner.termination_function(self.learner.G):
+                break
+
+            #new_feature_values = self.learner.features.get(self.learner.G)
+            #self.learner.actions.get(action_A).state.add_sample(feature_values, Q)
+
+            #print self.learner.actions.get(action_A).state.design_matrix[self.learner.actions.get(action_A).state.n-1], Q
+
+            #if reward == 3: break
             
-
-            feature_values = self.learner.features.get(self.learner.G)
-            self.learner.actions.get(action_taken).state.add_sample(feature_values, Q)
-
-            #print self.learner.actions.get(action_taken).state.design_matrix[self.learner.actions.get(action_taken).state.n-1], Q
-
-            if reward == 3: break
             
-            reward = self.learner.reward_function(self.learner.G)
 
             #if self.learner.termination_function(reward): break
             #if self.learner.termination_function(G): break
-            
-            Q_values = self.learner.actions.Qs(feature_values)
+
+            feature_vals = self.learner.features.get(self.learner.G)
+            Q_values = self.learner.actions.Qs(feature_vals)
 
             if np.random.rand() <= self.epsilon:
-                action_taken = np.random.randint(0, len(self.learner.actions))
+                action_A = np.random.randint(0, len(self.learner.actions))
+                #print "random action: %s" % (self.learner.actions.action_dict[action_A],)
+                logging.info("random action: %s" % (self.learner.actions.action_dict[action_A],))
             else:
-                action_taken = Q_values.argmax()
+                #action_A = Q_values.argmax()
+                action_A = self.learner.actions.rand_max_Q_index(feature_vals)
+                #print "optimal action: %s" % (self.learner.actions.action_dict[action_A],)
+                logging.info("optimal action: %s" % (self.learner.actions.action_dict[action_A],))
+            #Q = (1 - self.alpha) * Q + self.alpha * (reward + self.gamma * Q_values[action_A])
+            logging.info("Q: %s" % (Q_values[action_A],))
+            self.learner.actions.get(action_A).w += self.alpha * (reward + self.gamma * Q_values[action_A] - prev_q) * self.learner.basis.array_expand(feature_vals)
+            #print self.learner.actions.get(action_A).w
+            logging.info("w: %s" % (self.learner.actions.get(action_A).w,))
 
-            Q = (1 - self.alpha) * Q + self.alpha * (reward + self.gamma * Q_values[action_taken])
-
-        for i in xrange(len(self.learner.actions)):
-            self.learner.actions.get(i).compute_Q_fn()
+        #for i in xrange(len(self.learner.actions)):
+        #    self.learner.actions.get(i).compute_Q_fn()
 
         #if not animate is None:
         #    episode_animator.animate()
@@ -158,9 +178,9 @@ class gglearner:
                  action_names,
                  basis_functions,
                  feature_functions,
-                 # termination_function,
-                 max_rows):
-
+                 termination_function):
+                 #max_rows):
+        logging.info("gglearner instance initialization")
         self.G0 = G0
         self.G = deepcopy(G0)
         #self.Gs = [G0]
@@ -170,15 +190,21 @@ class gglearner:
         self.actions = actions(action_functions,
                                action_names,
                                self.basis,
-                               len(feature_functions),
-                               max_rows)
+                               len(feature_functions))
         self.features = features(feature_functions)
-        #self.termination_function = termination_function
-        self.max_rows = max_rows
+        self.termination_function = termination_function
 
-    def run_episode(self ,alpha, gamma, epsilon, draw_steps=False, animate=None):
+    def run_episode(self, n_iter, alpha, gamma, epsilon, draw_steps=False, animate=None):
+        logging.info("episode: %s" % (len(self.episodes) + 1,))
+        
+        logging.info("max iterations: %s" % (n_iter,))
+        
+        logging.info("alpha: %s" % (alpha,))
+        logging.info("gamma: %s" % (gamma,))
+        logging.info("epsilon: %s" % (epsilon,))
+        
         new_episode = episode(self, alpha, gamma, epsilon)
-        new_episode.run(draw_steps, animate)
+        new_episode.run(n_iter, draw_steps, animate)
         self.episodes.append(new_episode)
         self.G = deepcopy(self.G0)
 
@@ -201,6 +227,7 @@ class features:
         #self.vfapply(self.feature_functions, G)
         return np.array([f(G) for f in self.feature_functions])
 
+#TODO: remove state class
 class state:
     """
     state instances track the relationship between the basis-expanded 
@@ -273,30 +300,33 @@ class action:
     action instances provide the means to both execute an action 
     and to compute that action's value function.
     """
-    def __init__(self, f, name, basis, num_features, max_size):
+    def __init__(self, f, name, basis, num_features):
         self.f = f
         self.basis = basis
         self.name = name
         self.num_features = num_features
-        self.max_size = max_size
-        self.state = state(max_size, num_features, basis)
-        self.Q_function = Q_fn(self.basis, np.zeros(len(self.basis)*num_features))
+        self.w = np.zeros(len(self.basis)*num_features)
+        #self.max_size = max_size
+        #self.state = state(max_size, num_features, basis)
+        #self.Q_function = Q_fn(self.basis, np.zeros(len(self.basis)*num_features))
 
     def execute(self, x):
         return self.f(x)
 
-    def compute_Q_fn(self):
-        weights = self.state.regress()
-        self.Q_function = Q_fn(self.basis, weights)
-        self.state = state(self.max_size, self.num_features, self.basis)
+    def q(self, x):
+        return (self.basis.array_expand(x) * self.w).sum()
+    #def compute_Q_fn(self):
+    #    weights = self.state.regress()
+    #    self.Q_function = Q_fn(self.basis, weights)
+    #    self.state = state(self.max_size, self.num_features, self.basis)
 
 class actions:
     """
     An actions instance is a container for action instances.  
     It provides convenience functions and length semantics.
     """
-    def __init__(self, function_iterable, names_iterable, basis, num_features, max_size=1000):
-        self.actions_list = [action(f, name, basis, num_features, max_size) for f, name in zip(function_iterable, names_iterable)]
+    def __init__(self, function_iterable, names_iterable, basis, num_features):
+        self.actions_list = [action(f, name, basis, num_features) for f, name in zip(function_iterable, names_iterable)]
         self.action_dict = {}
         for i,an_action in enumerate(self.actions_list):
             self.action_dict[i] = an_action.name
@@ -313,4 +343,25 @@ class actions:
 
     def Qs(self, feature_values):
         #return self.vfapply(self.actions_list, feature_values)
-        return np.array([a.Q_function.eval(feature_values) for a in self.actions_list])
+        #return np.array([a.Q_function.eval(feature_values) for a in self.actions_list])
+        return np.array([a.q(feature_values) for a in self.actions_list])
+
+    def max_Q_indices(self, feature_values):
+        these_Qs = self.Qs(feature_values)
+        max_indices = [0]
+        max_value = these_Qs[0]
+
+        for i in range(1,len(these_Qs)):
+            if these_Qs[i] > max_value:
+                max_indices = [i]
+                max_value = these_Qs[i]
+            elif these_Qs[i] == max_value:
+                max_indices.append(i)
+
+        return max_indices
+
+    def rand_max_Q_index(self, feature_values):
+        max_indices = self.max_Q_indices(feature_values)
+
+        return max_indices[rand.randint(len(max_indices))]
+        

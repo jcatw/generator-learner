@@ -5,22 +5,24 @@ from scipy import stats
 import networkx as nx
 import scikits.statsmodels.api as sm
 #import ols
-
+import logging
 import matplotlib.pyplot as plt
+
+logging.basicConfig(filename="gglearn.log", level=logging.INFO)
 
 target_indegree_exponent = -2.7
 target_R2 = 0.8
-target_num_nodes = 2000
+target_num_nodes = 4000
 
 initial_num_nodes = 3
 initial_num_edges = 2
 
-basis_functions = [lambda x: 1,
-                   lambda x: x,
-                   lambda x: x**2,
-                   lambda x: x**3,
-                   lambda x: x**4,
-                   lambda x: x**5]
+#basis_functions = [lambda x: 1,
+#                   lambda x: x,
+#                   lambda x: x**2,
+#                   lambda x: x**3,
+#                   lambda x: x**4,
+#                   lambda x: x**5]
 
 #def reward_function_gen(target_exponent, target_num_nodes):
 #    # no multiline lambdas => running regress once for
@@ -37,7 +39,7 @@ basis_functions = [lambda x: 1,
 #def termination_function(reward):
 #    return reward >= 0.9 and reward <= 1.1
 
-def reward_fn(G, exp_tol=0.25, R2_tol=0.1, n_node_tol=10):
+def termination_fn(G, exp_tol=0.25, R2_tol=0.1, n_node_tol=10):
     exp, R2 = fit_powerlaw_regress(G)
     R2_condition =  (R2 >= target_R2 - R2_tol)
 
@@ -48,12 +50,13 @@ def reward_fn(G, exp_tol=0.25, R2_tol=0.1, n_node_tol=10):
     #print R2, exp, num_nodes
     #print R2_condition, exp_condition, node_condition
 
-    return int(R2_condition) + int(exp_condition) + int(node_condition)
+    #return int(R2_condition) + int(exp_condition) + int(node_condition)
     #if (R2_condition and exp_condition and node_condition):
     #    return 0
     #else:
     #    return -1
     
+    return (R2_condition and exp_condition and node_condition)
 
 #------------------------------------------------------------------------------#
 # Utility Functions
@@ -210,10 +213,23 @@ def powerlaw_mle(G):
 #def average_out_degree(G):
 #    return np.array(G.out_degree().values()).mean()
 
+def rbf_gen(center):
+    return lambda a, c = np.array(center): np.square(a-c).sum()
+
+
+
+rbf_range = [0,5]
+    
+basis_functions = [rbf_gen([0.,0.,0.]),
+                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],3)),
+                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],3)),
+                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],3)),
+                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],3))]
+                   
 
 glearn = gg.gglearner(initial_graph(3,2),
                       # reward_function_gen(target_indegree_exponent, target_num_nodes),
-                      reward_fn,
+                      lambda G: -1,
                       [add_node_random_edge, 
                        delete_node_in_degree_inverse,
                        add_edge_random, 
@@ -224,7 +240,8 @@ glearn = gg.gglearner(initial_graph(3,2),
                        "add edge by in-degree"],
                       basis_functions,
                       [num_nodes, num_edges, average_in_degree],#, powerlaw_mle],
-                      500)
+                      termination_fn)
 
 
-glearn.run_episode(0.9,0.9,0.9,animate="anim")
+#glearn.run_episode(12000,0.00001,0.9,0.05)
+
