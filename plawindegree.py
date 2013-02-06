@@ -8,7 +8,7 @@ import scikits.statsmodels.api as sm
 import logging
 import matplotlib.pyplot as plt
 
-logging.basicConfig(filename="gglearn.log", level=logging.INFO)
+logging.basicConfig(filename="gglearn.log", level=logging.DEBUG)
 
 target_indegree_exponent = -2.7
 target_R2 = 0.8

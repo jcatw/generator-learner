@@ -205,6 +205,10 @@ class gglearner:
         
         new_episode = episode(self, alpha, gamma, epsilon)
         new_episode.run(n_iter, draw_steps, animate)
+
+        logging.info("learned network: number of nodes = %s" % (new_episode.G.number_of_nodes(),) )
+        logging.info("learned network: number of edges = %s" % (new_episode.G.size(),) )
+        
         self.episodes.append(new_episode)
         self.G = deepcopy(self.G0)
 
