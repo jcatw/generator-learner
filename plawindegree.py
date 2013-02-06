@@ -213,18 +213,26 @@ def powerlaw_mle(G):
 #def average_out_degree(G):
 #    return np.array(G.out_degree().values()).mean()
 
-def rbf_gen(center):
-    return lambda a, c = np.array(center): np.square(a-c).sum()
+def rbf_gen(center,sigma):
+    return lambda a, c = np.array(center), s = sigma: np.exp(-np.square(a-c).sum()/(2.0 * sigma**2))
 
 
 
-rbf_range = [0,5]
+rbf_range = [0.0,5.0]
     
-basis_functions = [rbf_gen([0.,0.,0.]),
-                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],3)),
-                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],3)),
-                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],3)),
-                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],3))]
+basis_functions = [rbf_gen([0.,0.,0.],3.0),
+                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],3.0),3.0),
+                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],3.0),3.0),
+                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],3.0),3.0),
+                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],3.0),3.0),
+                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],1.0),3.0),
+                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],1.0),3.0),
+                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],1.0),3.0),
+                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],1.0),3.0),
+                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],5.0),3.0),
+                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],5.0),3.0),
+                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],5.0),3.0),
+                   rbf_gen(rand.randint(rbf_range[0],rbf_range[1],5.0),3.0)]
                    
 
 glearn = gg.gglearner(initial_graph(3,2),

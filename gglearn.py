@@ -101,7 +101,7 @@ class episode:
         for i in xrange(n_iter):
             prev_q = self.learner.actions.get(action_A).q(self.learner.features.get(self.learner.G))
             #if not i%100: print i
-            if not i%100: logging.info("iteration %s" % (i,))
+            logging.debug("iteration %s" % (i,))
             #print i
 
             #if np.random.rand() <= self.epsilon:
@@ -143,17 +143,17 @@ class episode:
             if np.random.rand() <= self.epsilon:
                 action_A = np.random.randint(0, len(self.learner.actions))
                 #print "random action: %s" % (self.learner.actions.action_dict[action_A],)
-                logging.info("random action: %s" % (self.learner.actions.action_dict[action_A],))
+                logging.debug("random action: %s" % (self.learner.actions.action_dict[action_A],))
             else:
                 #action_A = Q_values.argmax()
                 action_A = self.learner.actions.rand_max_Q_index(feature_vals)
                 #print "optimal action: %s" % (self.learner.actions.action_dict[action_A],)
-                logging.info("optimal action: %s" % (self.learner.actions.action_dict[action_A],))
+                logging.debug("optimal action: %s" % (self.learner.actions.action_dict[action_A],))
             #Q = (1 - self.alpha) * Q + self.alpha * (reward + self.gamma * Q_values[action_A])
-            logging.info("Q: %s" % (Q_values[action_A],))
+            logging.debug("Q: %s" % (Q_values[action_A],))
             self.learner.actions.get(action_A).w += self.alpha * (reward + self.gamma * Q_values[action_A] - prev_q) * self.learner.basis.array_expand(feature_vals)
             #print self.learner.actions.get(action_A).w
-            logging.info("w: %s" % (self.learner.actions.get(action_A).w,))
+            logging.debug("w: %s" % (self.learner.actions.get(action_A).w,))
 
         #for i in xrange(len(self.learner.actions)):
         #    self.learner.actions.get(i).compute_Q_fn()
