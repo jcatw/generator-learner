@@ -73,6 +73,9 @@ class episode:
         self.gamma = gamma
         self.epsilon = epsilon
 
+        self.iterations = 0
+        
+
     #TODO: clean up method comments
     def run(self, n_iter, draw_steps = False, animate = None): 
         """ 
@@ -89,6 +92,8 @@ class episode:
           storing animation and frames in directory specified by animate.
         
         """ 
+        self.n_iter = n_iter
+        self.actions_taken = -1 * np.ones(n_iter)
         
         if not animate is None:
             episode_animator = animator(animate)
@@ -123,6 +128,8 @@ class episode:
                 #raw_input("Press Enter to continue")
 
             if self.learner.termination_function(self.learner.G):
+                self.iterations = i
+                self.actions_taken = self.actions_taken[:self.iterations]
                 break
 
             #new_feature_values = self.learner.features.get(self.learner.G)
@@ -149,11 +156,13 @@ class episode:
                 action_A = self.learner.actions.rand_max_Q_index(feature_vals)
                 #print "optimal action: %s" % (self.learner.actions.action_dict[action_A],)
                 logging.debug("optimal action: %s" % (self.learner.actions.action_dict[action_A],))
+                
+            self.actions_taken[i] = action_A
             #Q = (1 - self.alpha) * Q + self.alpha * (reward + self.gamma * Q_values[action_A])
             logging.debug("Q: %s" % (Q_values[action_A],))
             self.learner.actions.get(action_A).w += self.alpha * (reward + self.gamma * Q_values[action_A] - prev_q) * self.learner.basis.array_expand(feature_vals)
             #print self.learner.actions.get(action_A).w
-            logging.debug("w: %s" % (self.learner.actions.get(action_A).w,))
+            logging.debug("w: %s" % (self.learner.actions.get(action_A).w,))            
 
         #for i in xrange(len(self.learner.actions)):
         #    self.learner.actions.get(i).compute_Q_fn()
@@ -163,6 +172,7 @@ class episode:
 
         self.G = self.learner.G
 
+        
 
 class gglearner:
     """
@@ -178,7 +188,8 @@ class gglearner:
                  action_names,
                  basis_functions,
                  feature_functions,
-                 termination_function):
+                 termination_function
+                 meta):
                  #max_rows):
         logging.info("gglearner instance initialization")
         self.G0 = G0
@@ -193,6 +204,7 @@ class gglearner:
                                len(feature_functions))
         self.features = features(feature_functions)
         self.termination_function = termination_function
+        self.meta = meta
 
     def run_episode(self, n_iter, alpha, gamma, epsilon, draw_steps=False, animate=None):
         logging.info("episode: %s" % (len(self.episodes) + 1,))
@@ -211,6 +223,17 @@ class gglearner:
         
         self.episodes.append(new_episode)
         self.G = deepcopy(self.G0)
+
+    def dashboard(filename=None):
+        fig = plt.figure()
+
+        ax = fig.add_subplot(211)
+        ax.plot(range(len(self.episodes)),[e.iterations for e in self.episodes])
+        ax.set_title("Learned Nodes")
+
+        ax = fig.add_subplot(212)
+        ax.plot(range(len(self.episodes)),[e.G.number_of_nodes() for e in self.episodes])
+        ax.set_title("Number of Iterations")
 
 
 class features:

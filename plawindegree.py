@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 
 logging.basicConfig(filename="gglearn.log", level=logging.DEBUG)
 
-target_indegree_exponent = -2.7
-target_R2 = 0.8
+target_indegree_exponent = -2.0
+target_R2 = 0.9
 target_num_nodes = 4000
 
 initial_num_nodes = 3
@@ -39,16 +39,21 @@ initial_num_edges = 2
 #def termination_function(reward):
 #    return reward >= 0.9 and reward <= 1.1
 
-def termination_fn(G, exp_tol=0.25, R2_tol=0.1, n_node_tol=10):
+def termination_fn(G, exp_tol=0.25, R2_tol=0.1, n_node_tol=100):
     exp, R2 = fit_powerlaw_regress(G)
     R2_condition =  (R2 >= target_R2 - R2_tol)
 
     exp_condition = (np.abs(exp) >= np.abs(target_indegree_exponent) - exp_tol) and (np.abs(exp) <= np.abs(target_indegree_exponent) + exp_tol)
 
     num_nodes = G.number_of_nodes()
-    node_condition = (num_nodes >= target_num_nodes - n_node_tol) and (num_nodes <= target_num_nodes + n_node_tol)
+    #node_condition = (num_nodes >= target_num_nodes - n_node_tol) and (num_nodes <= target_num_nodes + n_node_tol)
+    node_window = num_nodes >= target_num_nodes - n_node_tol and num_nodes <= target_num_nodes + n_node_tol
+    max_nodes = num_nodes >= target_num_nodes + 2 * n_node_tol
     #print R2, exp, num_nodes
     #print R2_condition, exp_condition, node_condition
+    logging.debug("R2 = %s, exponent = %s, num_nodes = %s" % (R2, exp, num_nodes))
+    logging.debug("R2_condition = %s, exp_conditon = %s, node_window = %s, max_nodes = %s" % 
+                  (R2_condition, exp_condition, node_window, max_nodes))
 
     #return int(R2_condition) + int(exp_condition) + int(node_condition)
     #if (R2_condition and exp_condition and node_condition):
@@ -56,7 +61,8 @@ def termination_fn(G, exp_tol=0.25, R2_tol=0.1, n_node_tol=10):
     #else:
     #    return -1
     
-    return (R2_condition and exp_condition and node_condition)
+    #return (R2_condition and exp_condition and node_condition)
+    return (R2_condition and exp_condition and node_window) or max_nodes
 
 #------------------------------------------------------------------------------#
 # Utility Functions
@@ -149,7 +155,8 @@ def delete_node_in_degree(G):
             G.remove_node(node_label)
 
 def delete_node_in_degree_inverse(G):
-    if G.number_of_nodes() >= target_num_nodes:
+    if G.number_of_nodes() >= (0.9 * target_num_nodes):
+    #if G.number_of_nodes() > 1:
         inv_in_degree = 1 / (np.array(G.in_degree().values()) + 1)
         pmf = inv_in_degree.astype(float) / inv_in_degree.sum()
 
@@ -239,17 +246,47 @@ glearn = gg.gglearner(initial_graph(3,2),
                       # reward_function_gen(target_indegree_exponent, target_num_nodes),
                       lambda G: -1,
                       [add_node_random_edge, 
-                       delete_node_in_degree_inverse,
+                       #delete_node_in_degree_inverse,
                        add_edge_random, 
                        add_edge_in_degree],
                       ["add node",
-                       "delete node by inverse in-degree",
+                       #"delete node by inverse in-degree",
                        "add random edge", 
                        "add edge by in-degree"],
                       basis_functions,
                       [num_nodes, num_edges, average_in_degree],#, powerlaw_mle],
                       termination_fn)
 
+def dashboard(episode,filename=None):
+    fig = plt.figure()
+    
+    # number of nodes
+    ax = fig.add_subplot(221)
+    ax.bar([0,1],[episode.G.number_of_nodes(), target_num_nodes])
+    ax.set_title("Learned Nodes")
+
+    # iterations
+    ax = fig.add_subplot(222)
+    ax.bar([0,1],[episode.iterations, episode.n_iter])
+    ax.set_title("Number of Iterations")
+    
+    # regression
+    exponent, R2 = fit_powerlaw_regress(episode.G)
+    
+    ax = fig.add_subplot(223)
+    ax.bar([0,1],[exponent, target_indegree_exponent])
+    ax.set_title("Exponent")
+
+    ax = fig.add_subplot(224)
+    ax.bar([0,1],[R2,target_R2])
+
+    if filename is None:
+        plt.show()
+    else:
+        plt.savefig(filename)
+        
+
 
 #glearn.run_episode(12000,0.00001,0.9,0.05)
+
 
