@@ -128,8 +128,7 @@ class episode:
                 #raw_input("Press Enter to continue")
 
             if self.learner.termination_function(self.learner.G):
-                self.iterations = i
-                self.actions_taken = self.actions_taken[:self.iterations]
+                
                 break
 
             #new_feature_values = self.learner.features.get(self.learner.G)
@@ -169,7 +168,8 @@ class episode:
 
         #if not animate is None:
         #    episode_animator.animate()
-
+        self.iterations = i
+        self.actions_taken = self.actions_taken[:self.iterations]
         self.G = self.learner.G
 
         
@@ -188,8 +188,8 @@ class gglearner:
                  action_names,
                  basis_functions,
                  feature_functions,
-                 termination_function
-                 meta):
+                 termination_function):
+
                  #max_rows):
         logging.info("gglearner instance initialization")
         self.G0 = G0
@@ -204,7 +204,7 @@ class gglearner:
                                len(feature_functions))
         self.features = features(feature_functions)
         self.termination_function = termination_function
-        self.meta = meta
+
 
     def run_episode(self, n_iter, alpha, gamma, epsilon, draw_steps=False, animate=None):
         logging.info("episode: %s" % (len(self.episodes) + 1,))
@@ -224,16 +224,24 @@ class gglearner:
         self.episodes.append(new_episode)
         self.G = deepcopy(self.G0)
 
-    def dashboard(filename=None):
+    def dashboard(self,filename=None):
         fig = plt.figure()
 
         ax = fig.add_subplot(211)
         ax.plot(range(len(self.episodes)),[e.iterations for e in self.episodes])
-        ax.set_title("Learned Nodes")
-
-        ax = fig.add_subplot(212)
-        ax.plot(range(len(self.episodes)),[e.G.number_of_nodes() for e in self.episodes])
         ax.set_title("Number of Iterations")
+
+        if filename is None:
+            plt.show()
+        else:
+            plt.savefig(filename)
+        
+        #ax = fig.add_subplot(212)
+        #ax.plot(range(len(self.episodes)),[e.iterations for e in self.episodes])
+        #ax.plot(range(len(self.episodes)),[e.G.number_of_nodes() for e in self.episodes])
+        #ax.set_title("Learned Nodes")
+        
+        
 
 
 class features:

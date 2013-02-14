@@ -12,7 +12,7 @@ logging.basicConfig(filename="gglearn.log", level=logging.DEBUG)
 
 target_indegree_exponent = -2.0
 target_R2 = 0.9
-target_num_nodes = 4000
+target_num_nodes = 4100
 
 initial_num_nodes = 3
 initial_num_edges = 2
@@ -262,23 +262,26 @@ def dashboard(episode,filename=None):
     
     # number of nodes
     ax = fig.add_subplot(221)
-    ax.bar([0,1],[episode.G.number_of_nodes(), target_num_nodes])
+    ax.bar([0,1],[episode.G.number_of_nodes(), target_num_nodes],color=['b','r'])
     ax.set_title("Learned Nodes")
 
     # iterations
     ax = fig.add_subplot(222)
-    ax.bar([0,1],[episode.iterations, episode.n_iter])
+    ax.bar([0,1],[episode.iterations, episode.n_iter],color=['b','r'])
     ax.set_title("Number of Iterations")
     
     # regression
     exponent, R2 = fit_powerlaw_regress(episode.G)
     
     ax = fig.add_subplot(223)
-    ax.bar([0,1],[exponent, target_indegree_exponent])
+    ax.bar([0,1],[exponent, target_indegree_exponent],color=['b','r'])
     ax.set_title("Exponent")
 
     ax = fig.add_subplot(224)
-    ax.bar([0,1],[R2,target_R2])
+    ax.bar([0,1],[R2,target_R2],color=['b','r'])
+    ax.set_title("R2")
+
+    plt.suptitle("Actual: Blue, Target: Red")
 
     if filename is None:
         plt.show()
