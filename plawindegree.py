@@ -423,7 +423,6 @@ class plaw_gglearner(gg.gglearner):
 
         csv.close()
 
-            
 
 glearn = plaw_gglearner(initial_graph(3,2),
                       # reward_function_gen(target_indegree_exponent, target_num_nodes),
@@ -439,6 +438,36 @@ glearn = plaw_gglearner(initial_graph(3,2),
                       basis_functions,
                       [num_nodes, num_edges, average_in_degree],#, powerlaw_mle],
                       termination_fn)
+
+def scale_free_reward(G):
+    exp_tol = 0.1
+    exp, R2 = fit_powerlaw_regress(G)
+    
+
+    R2_condition = R2 >= target_R2
+    exp_condition = exp >= target_indegree_exponent - exp_tol and exp <= target_indegree_exponent + exp_tol
+
+    if exp_condition and R2_condition:
+        return 1
+    else:
+        return 0
+
+
+
+sfreelearn = plaw_gglearner(initial_graph(3,2),
+                      # reward_function_gen(target_indegree_exponent, target_num_nodes),
+                      scale_free_reward
+                      [add_node_random_edge, 
+                       #delete_node_in_degree_inverse,
+                       add_edge_random, 
+                       add_edge_in_degree],
+                      ["add node",
+                       #"delete node by inverse in-degree",
+                       "add random edge", 
+                       "add edge by in-degree"],
+                      basis_functions,
+                      [num_nodes, num_edges, average_in_degree],#, powerlaw_mle],
+                      lambda G: False)
 
 
 
