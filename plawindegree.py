@@ -407,6 +407,24 @@ class plaw_gglearner(gg.gglearner):
         else:
             plt.savefig(filename)
 
+    def write_csv(self,filename):
+        csv = open(filename,'w')
+
+        csv.writeline(["episode, iterations, nodes, edges, avg_in_degree"])
+
+        for i,e in enumerate(self.episodes):
+            iterations = str(e.iterations)
+            n_nodes = str(e.G.number_of_nodes())
+            n_edges = str(e.G.number_of_edges())
+            avg_in_degree = str(e.avg_in_degree[-1])
+
+            csv.write(','.join([str(i),iterations,n_nodes,n_edges,avg_in_degree]))
+            csv.write('\n')
+
+        csv.close()
+
+            
+
 glearn = plaw_gglearner(initial_graph(3,2),
                       # reward_function_gen(target_indegree_exponent, target_num_nodes),
                       lambda G: -1,
