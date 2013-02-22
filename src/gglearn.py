@@ -8,46 +8,6 @@ import os
 import logging
 from copy import deepcopy
 
-import images2gif
-from PIL import Image
-
-#def Q_fn_gen(basis, weights):
-#    return lambda x, basis=basis, weights=weights: (basis.expand(x) * weights).sum()
-
-class animator:
-    """
-    animator instances extract frames from networkx graphs 
-    to create animated gifs of network evolution.
-
-    Requires PIL (Python Imaging Library)
-    """
-    def __init__(self, dirname, interval=10):
-        
-
-        self.dir = dirname
-        os.mkdir(self.dir)
-
-        self.interval = interval
-        
-        self.frame_count = 0 
-
-        
-
-    def add_frame(self, G):
-        self.frame_count += 1
-        nx.draw(G)
-        plt.savefig("%s/frame%06d.gif" % (self.dir, self.frame_count))
-        
-    def animate(self):
-        images = [Image.open("%s/frame%06d.gif" % (self.dir, i)) for i in range(1, self.frame_count)]
-        images2gif.writeGif("%s/animation%06d.gif" % (self.dir, self.frame_count), images)
-            
-            
-    
-        
-        
-
-    
 class Q_fn:
     """
     This class maps feature values to Q values.  
