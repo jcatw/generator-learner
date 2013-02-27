@@ -1,7 +1,9 @@
 import numpy as np
 import numpy.random as rand
 import networkx as nx
+import scikits.statsmodels.api as sm
 from scipy import stats
+
 
 
 #------------------------------------------------------------------------------#
