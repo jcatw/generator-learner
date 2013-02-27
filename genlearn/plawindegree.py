@@ -1,4 +1,4 @@
-import gglearn as gg
+import learner as gg
 import numpy as np
 import numpy.random as rand
 from scipy import stats
@@ -363,7 +363,7 @@ class plaw_episode(gg.episode):
             plt.savefig(filename)
         
             
-class plaw_gglearner(gg.gglearner):
+class plaw_gglearner(gg.learner):
     def run_episode(self, n_iter, alpha, gamma, epsilon, draw_steps=False):
         logging.info("episode: %s" % (len(self.episodes) + 1,))
         
@@ -456,8 +456,8 @@ def scale_free_reward(G):
 
 sfreelearn = plaw_gglearner(initial_graph(3,2),
                       # reward_function_gen(target_indegree_exponent, target_num_nodes),
-                      scale_free_reward
-                      [add_node_random_edge, 
+                      scale_free_reward,
+                      [add_node_random_edge,
                        #delete_node_in_degree_inverse,
                        add_edge_random, 
                        add_edge_in_degree],
