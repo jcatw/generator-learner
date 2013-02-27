@@ -4,12 +4,11 @@ import numpy.random as rand
 from scipy import stats
 import networkx as nx
 import scikits.statsmodels.api as sm
-#import ols
 import logging
 import matplotlib.pyplot as plt
 from copy import deepcopy
 
-logging.basicConfig(filename="gglearn.log", level=logging.DEBUG)
+logging.basicConfig(filename="plawLearner.log", level=logging.DEBUG)
 
 target_indegree_exponent = -2.0
 target_R2 = 0.9
@@ -18,28 +17,6 @@ target_num_nodes = 4100
 initial_num_nodes = 3
 initial_num_edges = 2
 
-#basis_functions = [lambda x: 1,
-#                   lambda x: x,
-#                   lambda x: x**2,
-#                   lambda x: x**3,
-#                   lambda x: x**4,
-#                   lambda x: x**5]
-
-#def reward_function_gen(target_exponent, target_num_nodes):
-#    # no multiline lambdas => running regress once for
-#    # each parameter.  Ewwwww.
-#    return lambda G, target_exponent=target_exponent, target_num_nodes=target_num_nodes: fit_powerlaw_regress(G)[1] / (((np.abs(target_exponent - fit_powerlaw_regress(G)[0]) + 1) * np.log10(np.abs(G.number_of_nodes() - target_num_nodes) + 1))+1)
-
-#def reward_fn(G,termination_fn):
-#    if termination_fn(G):
-#        return 0
-#    else:
-#        return -1
-#
-
-#def termination_function(reward):
-#    return reward >= 0.9 and reward <= 1.1
-
 def termination_fn(G, exp_tol=0.25, R2_tol=0.1, n_node_tol=100):
     exp, R2 = fit_powerlaw_regress(G)
     R2_condition =  (R2 >= target_R2 - R2_tol)
@@ -47,22 +24,14 @@ def termination_fn(G, exp_tol=0.25, R2_tol=0.1, n_node_tol=100):
     exp_condition = (np.abs(exp) >= np.abs(target_indegree_exponent) - exp_tol) and (np.abs(exp) <= np.abs(target_indegree_exponent) + exp_tol)
 
     num_nodes = G.number_of_nodes()
-    #node_condition = (num_nodes >= target_num_nodes - n_node_tol) and (num_nodes <= target_num_nodes + n_node_tol)
+    
     node_window = num_nodes >= target_num_nodes - n_node_tol and num_nodes <= target_num_nodes + n_node_tol
     max_nodes = num_nodes >= target_num_nodes + 2 * n_node_tol
-    #print R2, exp, num_nodes
-    #print R2_condition, exp_condition, node_condition
+    
     logging.debug("R2 = %s, exponent = %s, num_nodes = %s" % (R2, exp, num_nodes))
     logging.debug("R2_condition = %s, exp_conditon = %s, node_window = %s, max_nodes = %s" % 
                   (R2_condition, exp_condition, node_window, max_nodes))
 
-    #return int(R2_condition) + int(exp_condition) + int(node_condition)
-    #if (R2_condition and exp_condition and node_condition):
-    #    return 0
-    #else:
-    #    return -1
-    
-    #return (R2_condition and exp_condition and node_condition)
     return (R2_condition and exp_condition and node_window) or max_nodes
 
 #------------------------------------------------------------------------------#
@@ -87,10 +56,8 @@ def fit_powerlaw_regress(G):
     for i in xrange(len(n)):
         bins_midpoint[i] = (bins[i] + bins[i+1]) / 2.0
 
-    #reg_res = ols.ols(np.log(n+1), np.log(bins_midpoint))
     reg_res = sm.OLS(np.log(n+1), np.array(sm.add_constant(np.log(bins_midpoint)))).fit()
 
-    #return reg_res.b[1],reg_res.R2
     return reg_res.params[0], reg_res.rsquared
 
 def fit_powerlaw(G):
@@ -101,7 +68,6 @@ def fit_powerlaw(G):
     for i in xrange(len(n)):
         bins_midpoint[i] = (bins[i] + bins[i+1]) / 2.0
 
-    #reg_res = ols.ols(np.log(n+1), np.log(bins_midpoint))
     reg_res = sm.OLS(np.log(n+1), np.array(sm.add_constant(np.log(bins_midpoint)))).fit()
 
     return reg_res.params
@@ -149,8 +115,6 @@ def add_node_random_edge(G):
 
 def delete_node_random(G):
     if G.number_of_nodes() > target_num_nodes:
-        #node_index = rand.randint(G.number_of_nodes())
-        #node_label = G.nodes()[node_index]
         node_label = sample_node(G)
         G.node_holes.append(node_label)
         G.remove_node(node_label)
@@ -170,12 +134,9 @@ def delete_node_in_degree(G):
 
 def delete_node_in_degree_inverse(G):
     if G.number_of_nodes() >= (0.9 * target_num_nodes):
-    #if G.number_of_nodes() > 1:
         inv_in_degree = 1 / (np.array(G.in_degree().values()) + 1)
         pmf = inv_in_degree.astype(float) / inv_in_degree.sum()
 
-        #node_index = sample_pmf(pmf)
-        #node_label = G.nodes()[node_index]
         node_label = sample_node(G)
 
         G.node_holes.append(node_label)
@@ -230,9 +191,6 @@ def average_in_degree(G):
 
 def powerlaw_mle(G):
     return fit_powerlaw_regress(G)[0]
-
-#def average_out_degree(G):
-#    return np.array(G.out_degree().values()).mean()
 
 def rbf_gen(center,sigma):
     return lambda a, c = np.array(center), s = sigma: np.exp(-np.square(a-c).sum()/(2.0 * sigma**2))
@@ -425,18 +383,15 @@ class plaw_gglearner(gg.learner):
 
 
 glearn = plaw_gglearner(initial_graph(3,2),
-                      # reward_function_gen(target_indegree_exponent, target_num_nodes),
                       lambda G: -1,
                       [add_node_random_edge, 
-                       #delete_node_in_degree_inverse,
                        add_edge_random, 
                        add_edge_in_degree],
                       ["add node",
-                       #"delete node by inverse in-degree",
                        "add random edge", 
                        "add edge by in-degree"],
                       basis_functions,
-                      [num_nodes, num_edges, average_in_degree],#, powerlaw_mle],
+                      [num_nodes, num_edges, average_in_degree],
                       termination_fn)
 
 def scale_free_reward(G):
@@ -455,18 +410,15 @@ def scale_free_reward(G):
 
 
 sfreelearn = plaw_gglearner(initial_graph(3,2),
-                      # reward_function_gen(target_indegree_exponent, target_num_nodes),
                       scale_free_reward,
                       [add_node_random_edge,
-                       #delete_node_in_degree_inverse,
                        add_edge_random, 
                        add_edge_in_degree],
                       ["add node",
-                       #"delete node by inverse in-degree",
                        "add random edge", 
                        "add edge by in-degree"],
                       basis_functions,
-                      [num_nodes, num_edges, average_in_degree],#, powerlaw_mle],
+                      [num_nodes, num_edges, average_in_degree],
                       lambda G: False)
 
 
