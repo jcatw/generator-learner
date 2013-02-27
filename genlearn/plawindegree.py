@@ -1,8 +1,5 @@
 import numpy as np
-import numpy.random as rand
-from scipy import stats
 import networkx as nx
-import scikits.statsmodels.api as sm
 import logging
 import matplotlib.pyplot as plt
 from copy import deepcopy

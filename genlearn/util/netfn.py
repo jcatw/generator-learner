@@ -1,6 +1,8 @@
 import numpy as np
 import numpy.random as rand
 import networkx as nx
+from scipy import stats
+
 
 #------------------------------------------------------------------------------#
 # Termination Functions
