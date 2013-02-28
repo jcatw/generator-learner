@@ -14,6 +14,9 @@ class features:
         #self.vfapply = np.vectorize(lambda f,x: f(x))
         self.feature_functions = feature_functions
 
+    def __len__(self):
+        return len(self.feature_functions)
+
     def get(self, G):
         #self.vfapply(self.feature_functions, G)
         return np.array([f(G) for f in self.feature_functions])
