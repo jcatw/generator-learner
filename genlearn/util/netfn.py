@@ -110,18 +110,28 @@ def sample_node(G):
     nodes = G.nodes()
     return nodes[rand.randint(0, len(nodes))]
 
-def add_node(G):
+def add_node_deletion_safe(G):
     if G.node_holes:
         G.add_node(G.node_holes.pop())
     else:
         G.add_node(G.number_of_nodes())
 
-def add_node_random_edge(G):
+def add_node(G):
+    G.add_node(G.number_of_nodes())
+
+def add_node_random_edge_deletion_safe(G):
 
     if G.node_holes:
         node_label = G.node_holes.pop()
     else:
         node_label = G.number_of_nodes()
+
+    random_existing_node = sample_node(G)
+    G.add_node(node_label)
+    G.add_edge(node_label, random_existing_node)
+
+def add_node_random_edge(G):
+    node_label = G.number_of_nodes()
 
     random_existing_node = sample_node(G)
     G.add_node(node_label)
