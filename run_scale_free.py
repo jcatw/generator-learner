@@ -1,3 +1,4 @@
+import sys
 import logging
 from time import time
 
@@ -6,7 +7,7 @@ import genlearn.scalefree as scalefree
 import genlearn.util.rbf as rbf
 from genlearn.util.netfn import *
 
-logging.basicConfig(filename="scalefree_%s.log" % (time()), level=logging.DEBUG)
+logging.basicConfig(filename="/nfs/pantanal/scratch1/jatwood/genlog/scalefree_%s.log" % (time()), level=logging.DEBUG)
 
 def node_process(G):
     index = G.number_of_nodes()
@@ -32,7 +33,10 @@ agent = scalefree.scalefree_learner(G_init,
                                     termination_fn)
 
 # to run an episode: agent.run_episode([number of iterations], [node process], [alpha], [gamma], [epsilon])
-# agent.run_episode(30000, node_process, 0.0001, 0.9, 0.5)
+for k in xrange(int(sys.argv[2])):
+    print "Running episode %s." % (k+1,)
+    agent.run_episode(int(sys.argv[1]), node_process, 0.0001, 0.9, 0.5)
+    
 
 
                                     
