@@ -68,7 +68,7 @@ class scalefree_episode(learner.episode):
         
         self.G = self.learner.G
 
-    def dashboard(self,filename=None):
+    def dashboard(self,target_indegree_exponent, target_R2, filename=None):
         fig = plt.figure()
         
         # number of nodes

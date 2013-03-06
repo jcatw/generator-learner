@@ -10,7 +10,11 @@ from genlearn.util.netfn import *
 
 timestamp = time()
 
-logging.basicConfig(filename="/nfs/pantanal/scratch1/jatwood/genlog/scalefree_%s.log" % (timestamp), level=logging.DEBUG)
+logging.basicConfig(filename="/nfs/pantanal/scratch1/jatwood/genlog/scalefree_%s_%s_%s_%s_%s.log" % (timestamp, 
+                                                                                                     sys.argv[1],
+                                                                                                     sys.argv[2],
+                                                                                                     sys.argv[3],
+                                                                                                     sys.argv[4]), level=logging.DEBUG)
 
 def node_process_gen(frequency, n):
     def node_process(i, G):
@@ -75,9 +79,21 @@ def learn_process(frequency, n):
         print "Running episode %s." % (k+1,)
         agent.run_episode(int(sys.argv[1]), node_process, 0.0001, 0.9, 0.5)
         
-        agent.dashboard("/nfs/pantanal/scratch1/jatwood/genlog/scalefree_dashboard_%s.png" % (timestamp,))
-        agent.episodes[0].dashboard("/nfs/pantanal/scratch1/jatwood/genlog/scalefree_first_episode_%s.png" % (timestamp,))
-        agent.episodes[-1].dashboard("/nfs/pantanal/scratch1/jatwood/genlog/scalefree_last_episode_%s.png" % (timestamp,))
+    agent.dashboard("/nfs/pantanal/scratch1/jatwood/genlog/scalefree_dashboard_%s_%s_%s_%s_%s.png" % (timestamp,
+                                                                                                      sys.argv[1],
+                                                                                                      sys.argv[2],
+                                                                                                      sys.argv[3],
+                                                                                                      sys.argv[4]))
+    agent.episodes[0].dashboard(-2.0, 0.95, "/nfs/pantanal/scratch1/jatwood/genlog/scalefree_first_episode_%s_%s_%s_%s_%s.png" % (timestamp,
+                                                                                                                                  sys.argv[1],
+                                                                                                                                  sys.argv[2],
+                                                                                                                                  sys.argv[3],
+                                                                                                                                  sys.argv[4]))
+    agent.episodes[-1].dashboard(-2.0, 0.95, "/nfs/pantanal/scratch1/jatwood/genlog/scalefree_last_episode_%s_%s_%s_%s_%s.png" % (timestamp,
+                                                                                                                                  sys.argv[1],
+                                                                                                                                  sys.argv[2],
+                                                                                                                                  sys.argv[3],
+                                                                                                                                  sys.argv[4]))
 
                                     
 learn_process(int(sys.argv[3]), int(sys.argv[4]))
