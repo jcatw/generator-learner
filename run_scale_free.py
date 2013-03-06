@@ -10,11 +10,13 @@ from genlearn.util.netfn import *
 
 timestamp = time()
 
-logging.basicConfig(filename="/nfs/pantanal/scratch1/jatwood/genlog/scalefree_%s_%s_%s_%s_%s.log" % (timestamp, 
-                                                                                                     sys.argv[1],
-                                                                                                     sys.argv[2],
-                                                                                                     sys.argv[3],
-                                                                                                     sys.argv[4]), level=logging.DEBUG)
+#logging.basicConfig(filename="/nfs/pantanal/scratch1/jatwood/genlog/scalefree_%s_%s_%s_%s_%s.log" % (timestamp, 
+#                                                                                                     sys.argv[1],
+#                                                                                                     sys.argv[2],
+#                                                                                                     sys.argv[3],
+#                                                                                                     sys.argv[4]), level=logging.DEBUG)
+
+logging.basicConfig(filename="testlog",level = logging.DEBUG)
 
 def node_process_gen(frequency, n):
     def node_process(i, G):
@@ -29,7 +31,7 @@ def node_process_gen(frequency, n):
 
 def reward_gen(target_indegree_exponent, exp_tol, target_R2, false_reward, true_reward):
     def reward_fn(G):
-        reg_res, ccdf = fit_powerlaw_cumulative(G)
+        reg_res, ccdf, in_degree = fit_powerlaw_cumulative(G)
 
         # target indegree exponent is for the pdf
         # ccdf has exponent of (pdf exponent) + 1

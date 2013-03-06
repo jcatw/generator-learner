@@ -64,6 +64,17 @@ def fit_powerlaw(G):
 
     return reg_res.params
 
+def fit_powerlaw_cumulative(G):
+    in_degree = np.sort(get_in_degree(G))
+    in_cumulative = in_degree.cumsum()
+    in_cdf = in_cumulative / in_cumulative[-1]
+    in_ccdf = 1 - in_cdf
+
+    reg_res = sm.OLS(np.log10(in_degree + 1), np.array(sm.add_constant(np.log10(in_ccdf + 1)))).fit()
+
+    return reg_res, in_ccdf, in_degree
+    
+
 #------------------------------------------------------------------------------#
 # Initialization Functions
 #------------------------------------------------------------------------------#
