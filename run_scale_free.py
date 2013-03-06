@@ -23,7 +23,7 @@ def node_process_gen(frequency, n):
 
     return node_process
 
-def reward_gen(target_exp, exp_tol, target_R2, false_reward, true_reward):
+def reward_gen(target_indegree_exponent, exp_tol, target_R2, false_reward, true_reward):
     def reward_fn(G):
         exp, R2 = fit_powerlaw_regress(G)
         
