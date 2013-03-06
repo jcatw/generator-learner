@@ -107,6 +107,8 @@ class scalefree_episode(learner.episode):
 
         exp = slope - 1.0
 
+        R2 = reg_res.rsquared
+
         ax = fig.add_subplot(233)
         ax.bar([0,1], [exp, target_indegree_exponent], color=['b','r'])
         ax.set_title("alpha")
