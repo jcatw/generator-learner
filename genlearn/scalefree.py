@@ -82,6 +82,7 @@ class scalefree_episode(learner.episode):
         ax.set_title("Number of Iterations")
         
         # regression
+        """
         exponent, R2 = fit_powerlaw_regress(self.G)
         
         ax = fig.add_subplot(233)
@@ -98,7 +99,29 @@ class scalefree_episode(learner.episode):
         ax = fig.add_subplot(235)
         ax.plot(x, m * x + b, 'b', x, target_indegree_exponent * x + b, 'r')
         ax.set_title("Log-Log In-Degree Frequency")
-    
+        """
+
+        reg_res, ccdf, in_degree= fit_powerlaw_cumulative(self.G)
+        slope = reg_res.params[0]
+        intercept = reg_res.params[0]
+
+        exp = slope - 1.0
+
+        ax = fig.add_subplot(233)
+        ax.bar([0,1], [exp, target_indegree_exponent], color=['b','r'])
+        ax.set_title("alpha")
+
+        ax = fig.add_subplot(234)
+        ax.bar([0,1], [R2, target_R2], color=['b','r'])
+        ax.set_title("R2")
+
+        ax = fig.add_subplot(235)
+        x = np.arange(in_degree[0], in_degree[-1], 1.0 / float(len(in_degree)))
+        ax.plot(in_degree, ccdf, 'g',
+                x, slope * x + intercept, 'b',
+                x, (target_indegree_exponent + 1) * x + intercept, 'r')
+        ax.set_title("In-Degree CCDF")
+
         plt.suptitle("Actual: Blue, Target: Red")
     
         if filename is None:

@@ -25,7 +25,15 @@ def node_process_gen(frequency, n):
 
 def reward_gen(target_indegree_exponent, exp_tol, target_R2, false_reward, true_reward):
     def reward_fn(G):
-        exp, R2 = fit_powerlaw_regress(G)
+        reg_res, ccdf = fit_powerlaw_cumulative(G)
+
+        # target indegree exponent is for the pdf
+        # ccdf has exponent of (pdf exponent) + 1
+        # slope(log ccdf) - 1 = pdf exponent
+        slope = reg_res.params[0]
+        exp = slope - 1.0
+        
+        R2 = reg_res.rsquared
         
         R2_condition = R2 >= target_R2
         exp_condition = np.abs(exp) >= np.abs(target_indegree_exponent) - exp_tol and np.abs(exp) <= np.abs(target_indegree_exponent) + exp_tol
