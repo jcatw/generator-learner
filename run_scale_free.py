@@ -21,6 +21,8 @@ def node_process_gen(frequency, n):
                 G.add_node(index)
                 G.add_edge(index, target)
 
+    return node_process
+
 def reward_gen(target_exp, exp_tol, target_R2, false_reward, true_reward):
     def reward_fn(G):
         exp, R2 = fit_powerlaw_regress(G)
@@ -32,10 +34,12 @@ def reward_gen(target_exp, exp_tol, target_R2, false_reward, true_reward):
             return true_reward
         else:
             return false_reward
+
+    return reward_fn
     
 
 G_init = initial_graph(3,2)
-reward_gen(-2.0, 0.1, 0.95, 0.0, 1.0) #implicitly sets reward_fn(G)
+reward_fn = reward_gen(-2.0, 0.1, 0.95, 0.0, 1.0) 
 action_fns = [add_edge_random,
               add_edge_in_degree]
 action_names = ["add random edge",
@@ -56,7 +60,7 @@ def learn_process(frequency, n):
                                         feature_fns,
                                         termination_fn)
     
-    node_process_gen(frequency, n) #implicitly sets node_process(i,G)
+    node_process = node_process_gen(frequency, n)
     
     # to run an episode: agent.run_episode([number of iterations], [node process], [alpha], [gamma], [epsilon])
     for k in xrange(int(sys.argv[2])):
