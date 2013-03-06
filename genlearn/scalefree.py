@@ -33,7 +33,7 @@ class scalefree_episode(learner.episode):
             if self.learner.termination_function(self.learner.G):
                 break
 
-            node_process(self.learner.G)
+            node_process(i, self.learner.G)
 
             feature_vals = self.learner.features.get(self.learner.G)
             Q_values = self.learner.actions.Qs(feature_vals)
