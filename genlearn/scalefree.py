@@ -73,7 +73,7 @@ class scalefree_episode(learner.episode):
         
         # number of nodes
         ax = fig.add_subplot(231)
-        ax.bar([0,1],[self.G.number_of_nodes(), target_num_nodes],color=['b','r'])
+        ax.bar([0],[self.G.number_of_nodes()],color=['b'])
         ax.set_title("Learned Nodes")
     
         # iterations
