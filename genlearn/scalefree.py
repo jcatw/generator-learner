@@ -7,6 +7,7 @@ from time import time
 
 import learner
 import util.rbf as rbf
+import util.powerlaw as powerlaw
 from util.netfn import *
 
 class scalefree_episode(learner.episode):
@@ -67,6 +68,10 @@ class scalefree_episode(learner.episode):
         self.number_of_edges = self.number_of_edges[:self.iterations]
         
         self.G = self.learner.G
+
+        powerlaw_fit = powerlaw.Fit(G.in_degree.values())
+        self.powerlaw_fit = powerlaw_fit
+        self.alpha = powerlaw_fit.power_law.alpha
 
     def dashboard(self,target_indegree_exponent, target_R2, filename=None):
         fig = plt.figure()
@@ -132,6 +137,33 @@ class scalefree_episode(learner.episode):
             plt.savefig(filename)
 
 class scalefree_learner(learner.learner):
+    def summary(self, filename=None):
+        summary_str = """
+        Number of episodes: %(nep)s
+
+        Number of iterations per episodes: %(niter_m)s (%(niter_std)s)
+
+        Alpha Values: %(alpha_m)s (%(alpha_std)s)
+        """
+
+        iterations = np.array([e.iterations for e in self.episodes])
+        alphas = np.array([e.alpha for e in self.episodes])
+        values = {'nep': len(self.episodes),
+                  'niter_m': iterations.mean(),
+                  'niter_std': iterations.std(),
+                  'alpha_m': alphas.mean(),
+                  'alpha_std': alphas.std()
+                  }
+
+        if filename is None:
+            print summary_str % values
+        else:
+            f = open(filename,'wc')
+            f.write(summary_str % values)
+            f.close()
+
+        return values
+        
     def run_episode(self, n_iter, node_process, alpha, gamma, epsilon):
         logging.info("episode: %s" % (len(self.episodes) + 1,))
         
@@ -178,15 +210,16 @@ class scalefree_learner(learner.learner):
     def write_csv(self,filename):
         csv = open(filename,'w')
 
-        csv.writeline(["episode, iterations, nodes, edges, avg_in_degree"])
+        csv.writeline(["episode, iterations, alpha,nodes, edges, avg_in_degree"])
 
         for i,e in enumerate(self.episodes):
             iterations = str(e.iterations)
+            alpha = str(e.alpha)
             n_nodes = str(e.G.number_of_nodes())
             n_edges = str(e.G.number_of_edges())
             avg_in_degree = str(e.avg_in_degree[-1])
 
-            csv.write(','.join([str(i),iterations,n_nodes,n_edges,avg_in_degree]))
+            csv.write(','.join([str(i),alpha,iterations,n_nodes,n_edges,avg_in_degree]))
             csv.write('\n')
 
         csv.close()
