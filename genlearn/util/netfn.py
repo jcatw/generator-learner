@@ -3,7 +3,7 @@ import numpy.random as rand
 import networkx as nx
 import scikits.statsmodels.api as sm
 from scipy import stats
-
+import powerlaw
 
 
 #------------------------------------------------------------------------------#
@@ -73,7 +73,19 @@ def fit_powerlaw_cumulative(G):
     reg_res = sm.OLS(np.log10(in_degree + 1), np.array(sm.add_constant(np.log10(in_ccdf + 1)))).fit()
 
     return reg_res, in_ccdf, in_degree
-    
+
+xmin=2.0
+
+def general_powerlaw_fit(fn,G):
+    statistic = fn(G)
+    results = powerlaw.fit(statistic,xmin=xmin)
+    return results
+
+def indegree_powerlaw_fit(G):
+    return general_powerlaw_fit(get_in_degree, G, xmin=xmin)
+
+def outdegree_powerlaw_fit(G):
+    return general_powerlaw_fit(get_out_degree,G, xmin=xmin)
 
 #------------------------------------------------------------------------------#
 # Initialization Functions
