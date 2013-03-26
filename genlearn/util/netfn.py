@@ -213,6 +213,23 @@ def add_edge_in_degree(G):
     else:
         add_random_edge(G)
 
+def add_edge_in_degree_inverse(G):
+    inv_in_degree = 1.0 / np.array(G.in_degree().values() + 1.0)
+
+    if inv_in_degree.max() > 0 :
+        edge_from_index = rand.randint(0,G.number_of_nodes())
+        edge_from_label = G.nodes()[edge_from_index]
+
+        pmf = inv_in_degree.astype(float) / inv_in_degree.sum()
+
+        edge_to_index = sample_pmf(pmf)
+        edge_to_label = G.nodes()[edge_to_index]
+
+        G.add_edge(edge_to_label, edge_from_label)
+    else:
+        add_random_edge(G)
+
+        
 def delete_edge_random(G):
     if G.number_of_edges() > 0:
         edge_index = rand.randint(0, G.number_of_edges())
