@@ -60,9 +60,11 @@ def reward_gen(target_alpha, alpha_tol, acceptable_D, false_reward, true_reward)
 G_init = initial_graph(100,200)
 reward_fn = reward_gen(float(sys.argv[5]), 0.1, 0.2, 0.0, 1.0)
 action_fns = [add_edge_random,
-              add_edge_in_degree]
+              add_edge_in_degree,
+              add_edge_in_degree_inverse]
 action_names = ["add random edge",
-                "add edge by in-degree"]
+                "add edge by in-degree",
+                "add edge by inverse in-degree"]
 basis_fns = rbf.default_radial_basis
 feature_fns = [num_nodes, num_edges, average_in_degree]
 termination_fn = lambda G: False
