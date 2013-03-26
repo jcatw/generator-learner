@@ -69,7 +69,7 @@ class scalefree_episode(learner.episode):
         
         self.G = self.learner.G
 
-        powerlaw_fit = powerlaw.Fit(G.in_degree.values())
+        powerlaw_fit = powerlaw.Fit(self.G.in_degree().values())
         self.powerlaw_fit = powerlaw_fit
         self.alpha = powerlaw_fit.power_law.alpha
 
@@ -210,16 +210,16 @@ class scalefree_learner(learner.learner):
     def write_csv(self,filename):
         csv = open(filename,'w')
 
-        csv.writeline(["episode, iterations, alpha,nodes, edges, avg_in_degree"])
+        csv.write("episode,iterations,alpha,nodes,edges,avg_in_degree\n")
 
         for i,e in enumerate(self.episodes):
             iterations = str(e.iterations)
-            alpha = str(e.alpha)
+            alpha = str(round(e.alpha,3))
             n_nodes = str(e.G.number_of_nodes())
             n_edges = str(e.G.number_of_edges())
-            avg_in_degree = str(e.avg_in_degree[-1])
+            avg_in_degree = str(round(e.average_in_degree[-1],3))
 
-            csv.write(','.join([str(i),alpha,iterations,n_nodes,n_edges,avg_in_degree]))
+            csv.write(','.join([str(i),iterations,alpha,n_nodes,n_edges,avg_in_degree]))
             csv.write('\n')
 
         csv.close()

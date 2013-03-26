@@ -21,6 +21,8 @@ from genlearn.util.netfn import *
 
 timestamp = time()
 
+sys.stdout = open("stdout.txt","w")
+
 logging.basicConfig(filename="/nfs/pantanal/scratch1/jatwood/genlog/%s_%s_%s_%s_%s_%s.log" % (sys.argv[6],
                                                                                               timestamp, 
                                                                                               sys.argv[1],
@@ -85,12 +87,12 @@ def report_plot(agent):
                                                                                                                            sys.argv[3],
                                                                                                                            sys.argv[4]))
 def report_csv(agent):
-    agent.write_csv("/nfs/pantanal/scratch1/jatwood/genlog/%s_csv_summary_%s_%s_%s_%s_%s.png" % (sys.argv[6],
+    agent.write_csv("/nfs/pantanal/scratch1/jatwood/genlog/%s_csv_summary_%s_%s_%s_%s_%s.csv" % (sys.argv[6],
                                                                                                  timestamp,
-                                                                                                  sys.argv[1],
-                                                                                                  sys.argv[2],
-                                                                                                  sys.argv[3],
-                                                                                                  sys.argv[4]))
+                                                                                                 sys.argv[1],
+                                                                                                 sys.argv[2],
+                                                                                                 sys.argv[3],
+                                                                                                 sys.argv[4]))
 
 def learn_process(frequency, n, report_fn=None):
     agent = scalefree.scalefree_learner(G_init,
