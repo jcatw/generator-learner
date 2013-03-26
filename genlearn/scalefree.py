@@ -119,7 +119,7 @@ class scalefree_episode(learner.episode):
 
         ax = fig.add_subplot(235)
         x = np.arange(in_degree[0], in_degree[-1], 1.0 / float(len(in_degree)))
-        ax.plot(np.log10(in_degree), np.log10(ccdf), 'g',
+        ax.plot(np.log10(in_degree+1), np.log10(ccdf+1), 'g',
                 x, slope * x + intercept, 'b',
                 x, (target_indegree_exponent + 1) * x + intercept, 'r')
         ax.set_title("In-Degree CCDF")

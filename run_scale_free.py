@@ -10,13 +10,15 @@ from genlearn.util.netfn import *
 
 timestamp = time()
 
-#logging.basicConfig(filename="/nfs/pantanal/scratch1/jatwood/genlog/scalefree_%s_%s_%s_%s_%s.log" % (timestamp, 
-#                                                                                                     sys.argv[1],
-#                                                                                                     sys.argv[2],
-#                                                                                                     sys.argv[3],
-#                                                                                                     sys.argv[4]), level=logging.DEBUG)
+logging.basicConfig(filename="/nfs/pantanal/scratch1/jatwood/genlog/%s_%s_%s_%s_%s_%s.log" % (timestamp, 
+                                                                                              sys.argv[5],
+                                                                                              sys.argv[1],
+                                                                                              sys.argv[2],
+                                                                                              sys.argv[3],
+                                                                                              sys.argv[4]), 
+                                                                                              level=logging.DEBUG)
 
-logging.basicConfig(filename="testlog",level = logging.DEBUG)
+#logging.basicConfig(filename="testlog",level = logging.DEBUG)
 
 def node_process_gen(frequency, n):
     def node_process(i, G):
