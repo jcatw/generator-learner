@@ -133,6 +133,16 @@ def sample_node(G):
     nodes = G.nodes()
     return nodes[rand.randint(0, len(nodes))]
 
+def sample_node_in_degree(G):
+    in_degree = np.array(G.in_degree().values())
+    
+    pmf = in_degree.astype(float) / in_degree.sum()
+
+    edge_to_index = sample_pmf(pmf)
+    edge_to_label = G.nodes()[edge_to_index]
+
+    return edge_to_label
+
 def add_node_deletion_safe(G):
     if G.node_holes:
         G.add_node(G.node_holes.pop())
@@ -160,6 +170,14 @@ def add_node_random_edge(G):
     G.add_node(node_label)
     G.add_edge(node_label, random_existing_node)
 
+def add_node_preferential(G):
+    node_label = G.number_of_nodes()
+
+    pref_existing_node = sample_node_in_degree(G)
+
+    G.add_node(node_label)
+    G.add_edge(node_label, pref_existing_node)
+    
 def delete_node_random(G):
     if G.number_of_nodes() > target_num_nodes:
         node_label = sample_node(G)

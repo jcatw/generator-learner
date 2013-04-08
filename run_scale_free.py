@@ -36,10 +36,7 @@ def node_process_gen(frequency, n):
     def node_process(i, G):
         if i % frequency == 0:
             for k in range(n):
-                index = G.number_of_nodes()
-                target = np.random.randint(G.number_of_nodes())
-                G.add_node(index)
-                G.add_edge(index, target)
+                add_node_preferential(G)
 
     return node_process
     
